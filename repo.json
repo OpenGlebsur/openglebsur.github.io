@@ -1,7 +1,7 @@
 {
   "name": "OpenGlebsur Repo",
   "description": "A my projects repo",
-  "url": "http://yourdomain.com",
+  "url": "https://raw.githubusercontent.com/OpenGlebsur/openglebsur.github.io/refs/heads/main/repo.json",
   "maintainer": "OpenGlebsur Projects",
   "packages": [
     {
