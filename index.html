@@ -1,0 +1,194 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Репозитории</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f4f7fb;
+            color: #1a2a3f;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0f2b3d;
+        }
+
+        .subhead {
+            color: #4a627a;
+            margin-bottom: 2rem;
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+        }
+
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .repo-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e2edf2;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .repo-name {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .repo-name a {
+            color: #1e3a8a;
+            text-decoration: none;
+        }
+
+        .repo-name a:hover {
+            text-decoration: underline;
+        }
+
+        .repo-description {
+            color: #2c3e50;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .repo-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #5b6e8c;
+            border-top: 1px solid #ecf3f6;
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .repo-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            border-left: 4px solid #dc2626;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #5b6e8c;
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6c86a3;
+            border-top: 1px solid #dce5ec;
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📁 Мои репозитории</h1>
+    <div class="subhead">Список проектов загружен из <code>repo.json</code></div>
+
+    <div id="repo-container" class="repo-grid">
+        <div class="loading">Загрузка данных...</div>
+    </div>
+    <footer>
+        Данные из локального файла repo.json
+    </footer>
+</div>
+
+<script>
+    async function loadRepositories() {
+        const container = document.getElementById('repo-container');
+
+        try {
+            const response = await fetch('repo.json');
+            if (!response.ok) {
+                throw new Error(`Ошибка HTTP: ${response.status}`);
+            }
+            const repos = await response.json();
+
+            if (!Array.isArray(repos) || repos.length === 0) {
+                container.innerHTML = '<div class="error-message">❌ Файл repo.json не содержит массива репозиториев или пуст.</div>';
+                return;
+            }
+
+            container.innerHTML = repos.map(repo => `
+                <div class="repo-card">
+                    <div class="repo-name">
+                        <a href="${repo.url || '#'}" target="_blank" rel="noopener noreferrer">
+                            ${escapeHtml(repo.name)}
+                        </a>
+                    </div>
+                    <div class="repo-description">
+                        ${escapeHtml(repo.description || 'Описание отсутствует')}
+                    </div>
+                    <div class="repo-meta">
+                        ${repo.language ? `<span>🔤 ${escapeHtml(repo.language)}</span>` : ''}
+                        ${repo.stars ? `<span>⭐ ${repo.stars}</span>` : ''}
+                        ${repo.updated ? `<span>🕒 ${escapeHtml(repo.updated)}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `
+                <div class="error-message">
+                    ⚠️ Не удалось загрузить repo.json.<br>
+                    Убедитесь, что файл находится в той же папке и имеет корректный JSON-формат.
+                </div>
+            `;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    loadRepositories();
+</script>
+</body>
+</html>
