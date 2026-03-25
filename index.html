@@ -1,10 +1,9 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Репозитории</title>
+    <title>Репозитории из repo.json</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +12,7 @@
         }
 
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
             background: #f4f7fb;
             color: #1a2a3f;
             padding: 2rem 1rem;
@@ -25,17 +24,67 @@
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: #0f2b3d;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .subhead {
             color: #4a627a;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             border-left: 4px solid #3b82f6;
             padding-left: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2edf2;
+            align-items: center;
+        }
+
+        button, .file-label {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+
+        button:hover, .file-label:hover {
+            background: #2563eb;
+        }
+
+        .file-label {
+            background: #10b981;
+        }
+
+        .file-label:hover {
+            background: #059669;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status {
+            font-size: 0.85rem;
+            color: #4b5563;
+            margin-left: auto;
         }
 
         .repo-grid {
@@ -59,7 +108,7 @@
         }
 
         .repo-name {
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
@@ -77,17 +126,18 @@
             color: #2c3e50;
             line-height: 1.4;
             margin-bottom: 1rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .repo-meta {
             display: flex;
             gap: 1rem;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #5b6e8c;
             border-top: 1px solid #ecf3f6;
             padding-top: 0.75rem;
             margin-top: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .repo-meta span {
@@ -96,7 +146,7 @@
             gap: 0.3rem;
         }
 
-        .error-message {
+        .error-message, .info-message {
             background: #fee2e2;
             color: #991b1b;
             padding: 1rem;
@@ -105,10 +155,10 @@
             border-left: 4px solid #dc2626;
         }
 
-        .loading {
-            text-align: center;
-            padding: 3rem;
-            color: #5b6e8c;
+        .info-message {
+            background: #e0f2fe;
+            color: #075985;
+            border-left-color: #0ea5e9;
         }
 
         footer {
@@ -123,72 +173,130 @@
 </head>
 <body>
 <div class="container">
-    <h1>📁 Мои репозитории</h1>
-    <div class="subhead">Список проектов загружен из <code>repo.json</code></div>
+    <h1>📁 Репозитории</h1>
+    <div class="subhead">Данные загружаются из файла <code>repo.json</code>, который лежит рядом с этой страницей.</div>
+
+    <div class="controls">
+        <button id="fetch-btn">📂 Загрузить repo.json (авто)</button>
+        <label class="file-label" for="file-input">📁 Выбрать repo.json вручную</label>
+        <input type="file" id="file-input" accept=".json">
+        <span id="status" class="status"></span>
+    </div>
 
     <div id="repo-container" class="repo-grid">
-        <div class="loading">Загрузка данных...</div>
+        <div class="info-message">Нажмите "Загрузить repo.json (авто)" или выберите файл вручную.</div>
     </div>
     <footer>
-        Данные из локального файла repo.json
+        Если авто-загрузка не работает, используйте ручной выбор файла.
     </footer>
 </div>
 
 <script>
-    async function loadRepositories() {
-        const container = document.getElementById('repo-container');
+    const container = document.getElementById('repo-container');
+    const fetchBtn = document.getElementById('fetch-btn');
+    const fileInput = document.getElementById('file-input');
+    const statusSpan = document.getElementById('status');
 
-        try {
-            const response = await fetch('repo.json');
-            if (!response.ok) {
-                throw new Error(`Ошибка HTTP: ${response.status}`);
-            }
-            const repos = await response.json();
-
-            if (!Array.isArray(repos) || repos.length === 0) {
-                container.innerHTML = '<div class="error-message">❌ Файл repo.json не содержит массива репозиториев или пуст.</div>';
-                return;
-            }
-
-            container.innerHTML = repos.map(repo => `
-                <div class="repo-card">
-                    <div class="repo-name">
-                        <a href="${repo.url || '#'}" target="_blank" rel="noopener noreferrer">
-                            ${escapeHtml(repo.name)}
-                        </a>
-                    </div>
-                    <div class="repo-description">
-                        ${escapeHtml(repo.description || 'Описание отсутствует')}
-                    </div>
-                    <div class="repo-meta">
-                        ${repo.language ? `<span>🔤 ${escapeHtml(repo.language)}</span>` : ''}
-                        ${repo.stars ? `<span>⭐ ${repo.stars}</span>` : ''}
-                        ${repo.updated ? `<span>🕒 ${escapeHtml(repo.updated)}</span>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        } catch (err) {
-            console.error(err);
-            container.innerHTML = `
-                <div class="error-message">
-                    ⚠️ Не удалось загрузить repo.json.<br>
-                    Убедитесь, что файл находится в той же папке и имеет корректный JSON-формат.
-                </div>
-            `;
+    function displayRepos(repos) {
+        if (!Array.isArray(repos) || repos.length === 0) {
+            container.innerHTML = '<div class="error-message">❌ Файл не содержит массива репозиториев или пуст.</div>';
+            return;
         }
+
+        container.innerHTML = repos.map(repo => `
+            <div class="repo-card">
+                <div class="repo-name">
+                    <a href="${escapeHtml(repo.url || '#')}" target="_blank" rel="noopener noreferrer">
+                        ${escapeHtml(repo.name)}
+                    </a>
+                </div>
+                <div class="repo-description">
+                    ${escapeHtml(repo.description || 'Описание отсутствует')}
+                </div>
+                <div class="repo-meta">
+                    ${repo.language ? `<span>🔤 ${escapeHtml(repo.language)}</span>` : ''}
+                    ${repo.stars ? `<span>⭐ ${repo.stars}</span>` : ''}
+                    ${repo.updated ? `<span>🕒 ${escapeHtml(repo.updated)}</span>` : ''}
+                </div>
+            </div>
+        `).join('');
     }
 
     function escapeHtml(str) {
         if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
 
-    loadRepositories();
+    function showError(msg) {
+        container.innerHTML = `<div class="error-message">⚠️ ${escapeHtml(msg)}</div>`;
+    }
+
+    function showInfo(msg) {
+        container.innerHTML = `<div class="info-message">ℹ️ ${escapeHtml(msg)}</div>`;
+    }
+
+    async function loadFromUrl(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: не удалось загрузить ${url}`);
+            }
+            const data = await response.json();
+            displayRepos(data);
+            statusSpan.textContent = '✓ Загружено';
+            return true;
+        } catch (err) {
+            console.warn(err);
+            return false;
+        }
+    }
+
+    // Автоматическая загрузка repo.json из той же папки
+    async function autoLoad() {
+        statusSpan.textContent = 'Загрузка...';
+        const success = await loadFromUrl('repo.json');
+        if (!success) {
+            showInfo('Авто-загрузка не удалась. Возможно, страница открыта локально (file://). Используйте ручной выбор файла.');
+            statusSpan.textContent = '✗ Ошибка авто-загрузки';
+        } else {
+            statusSpan.textContent = '✓ repo.json загружен';
+        }
+    }
+
+    // Ручная загрузка через input file
+    function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                displayRepos(json);
+                statusSpan.textContent = `✓ Загружен ${file.name}`;
+            } catch (err) {
+                showError(`Ошибка парсинга JSON: ${err.message}`);
+                statusSpan.textContent = '✗ Ошибка файла';
+            }
+        };
+        reader.onerror = function() {
+            showError('Не удалось прочитать файл');
+            statusSpan.textContent = '✗ Ошибка чтения';
+        };
+        reader.readAsText(file);
+    }
+
+    fetchBtn.addEventListener('click', autoLoad);
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // При загрузке страницы пробуем авто-загрузку (если работает)
+    autoLoad();
 </script>
 </body>
 </html>
