@@ -38,7 +38,31 @@
       "author": "OpenGlebsur",
       "depends": "wp8",
       "downloadurl": "https://files.catbox.moe/o3vhez.appx",
-      "icon": "https://files.catbox.moe/o3vhez.appx"
+      "icon": "https://files.catbox.moe/vyrcui.png"
+    },
+        {
+     "id": "4",
+      "name": "Yandex Translator",
+      "description": "A  translator (api dont work sorry)",
+      "version": "1.0.0",
+      "price": "free",
+      "section": "Utilities",
+      "author": "OpenGlebsur",
+      "depends": "wp8",
+      "downloadurl": "",
+      "icon": ""
+    },
+           {
+     "id": "5",
+      "name": "Old Xbox Games",
+      "description": "",
+      "version": "1.0.0",
+      "price": "free",
+      "section": "Utilities",
+      "author": "OpenGlebsur",
+      "depends": "w8",
+      "downloadurl": "https://files.catbox.moe/lsmfew.appx",
+      "icon": ""
     },
   ],
   "sections": [
@@ -48,8 +72,8 @@
     }
   ],
   "metadata": {
-    "last_updated": "2024-03-14T00:00:00Z",
-    "package_count": 2,
-    "supported_architectures": ["wp8"]
+    "last_updated": "2026-03-14T00:00:00Z",
+    "package_count": 5,
+    "supported_architectures": ["wp8", "w8" ]
   }
 }
